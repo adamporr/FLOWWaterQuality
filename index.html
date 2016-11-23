@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css" /><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css" />
+        <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/MarkerCluster.css" />
+        <link rel="stylesheet" href="css/MarkerCluster.Default.css" />
+        <link rel="stylesheet" href="css/leaflet-search.css" />
+        <link rel="stylesheet" href="css/leaflet.draw.css" />
+        <link rel="stylesheet" href="css/leaflet.measurecontrol.css" />
+        <script src="js/leaflet.js"></script><script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet-heat.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/OSMBuildings-Leaflet.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/leaflet.draw.js"></script>
+        <script src="js/leaflet.measurecontrol.js"></script>
+        <script src="js/leaflet.markercluster.js"></script>
+        <script src="js/leaflet-search.js"></script>
+        <script src="https://unpkg.com/esri-leaflet@2.0.6"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title></title>
+    </head>
+    <body>
+        <div class="header">
+	  <div class="header_logo">
+	    <img class="logo" src="images/flow_logo_transparent.png"></img>
+	  </div>
+	  <div class="header_nav">
+	  </div>
+	</div>
+	<div class="map">
+          <div id="map">
+          </div>
+	</div>
+        <div>
+	  <p class="section_heading">Selected features:</p>
+          <p id="selectedFeatures"></p>
+	  <p class="section_heading">Charts:</p>
+	</div>
+        <div id="charts">
+        </div>
+        <script src="data/json_Stations0.js"></script>
+        <script>
+
+        L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+        var map = L.map('map', {
+            measureControl:true,
+            zoomControl:true, maxZoom:14, minZoom:7
+        }).fitBounds([[39.9639211887,-83.2756977343],[40.3009039757,-82.8046772657]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        L.control.locate().addTo(map);
+
+        var feature_group = new L.featureGroup([]);
+        var bounds_group = new L.featureGroup([]);
+        var raster_group = new L.LayerGroup([]);
+
+        var basemap_esri_imagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+	    maxZoom: 14
+	});
+        basemap_esri_imagery.addTo(map);
+
+        var basemap_esri_gray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+	    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+	    maxZoom: 14
+	});
+        basemap_esri_gray.addTo(map);
+
+        var basemap_streams = L.esri.dynamicMapLayer({
+	    url: "http://epagis1.oit.ohio.gov/ArcGIS/rest/services/WM/irbasemap/MapServer",
+	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15]
+	});
+        basemap_streams.addTo(map);
+
+        function setBounds() {
+        }
+        function geoJson2heat(geojson, weight) {
+          return geojson.features.map(function(feature) {
+            return [
+              feature.geometry.coordinates[1],
+              feature.geometry.coordinates[0],
+              feature.properties[weight]
+            ];
+          });
+        }
+        function pop_Stations0(feature, layer) {
+            var popupContent = '<table><tr><td colspan="2"><strong>STATION_ID</strong><br />' + (feature.properties['STATION_ID'] !== null ? Autolinker.link(String(feature.properties['STATION_ID'])) : '') + '</td></tr></table>';
+            layer.bindPopup(popupContent);
+        }
+
+        map.createPane('pane_Stations0');
+        map.getPane('pane_Stations0').style.zIndex = 601;
+        function doStyleStations0() {
+            return {
+                pane: 'pane_Stations0',
+                radius: 4.0,
+                fillColor: '#a27eb9',
+                color: '#000000',
+                weight: 0.0,
+                opacity: 1.0,
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                fillOpacity: 1.0
+            }
+        }
+        function doPointToLayerStations0(feature, latlng) {
+            return L.circleMarker(latlng, doStyleStations0())
+        }
+        var json_Stations0JSON = new L.geoJson(json_Stations0, {
+            pane: 'pane_Stations0',
+  //          onEachFeature: pop_Stations0,
+	    onEachFeature: onEachFeature,
+            pointToLayer: doPointToLayerStations0,
+	    interactive: true
+        });
+
+        function toggleFeatureSelection(e) {
+	    var layer = e.target;
+
+	    selectedFeatures = updateSelectedFeatures();
+
+	    featureState = selectedFeatures.indexOf(layer.feature.properties["STATION_ID"]);
+
+	    if (featureState == -1) {
+		layer.feature.properties.selected = true;
+
+		layer.setStyle({
+		weight: 5,
+		color: '#FF0000'
+		});
+
+	    } else {
+		layer.feature.properties.selected = false;
+
+		resetHighlight(e);
+	    }
+
+
+	initialize();
+	}
+
+        function resetHighlight(e) {
+	    json_Stations0JSON.resetStyle(e.target);
+	}
+
+        bounds_group.addLayer(json_Stations0JSON);
+        feature_group.addLayer(json_Stations0JSON);
+        feature_group.addLayer(basemap_streams);
+        raster_group.addTo(map);
+        feature_group.addTo(map);
+        var baseMaps = {
+	    "Earth": basemap_esri_imagery,
+	    "Map": basemap_esri_gray
+	};
+
+        L.control.layers(baseMaps,{},{collapsed:false}).addTo(map);
+        setBounds();
+        map.addControl(new L.Control.Search({
+            layer: feature_group,
+            initial: false,
+            hideMarkerOnCollapse: true,
+            propertyName: 'STATION_ID'}));
+
+        function onEachFeature(feature, layer) {
+	    layer.on({
+		click: toggleFeatureSelection
+	    });
+
+	    pop_Stations0(feature, layer);	    
+	}
+
+        function updateSelectedFeatures() {
+	    var selectedFeatures = [];
+	    map.eachLayer( function(layer) {
+		if (layer.feature && layer.feature.properties.selected === true) {
+                    selectedFeatures.push(layer.feature.properties["STATION_ID"]);
+		}
+            })
+            document.getElementById("selectedFeatures").innerHTML = selectedFeatures;
+
+	    return selectedFeatures;
+        }
+
+      google.charts.load('current', {packages: ['corechart']});
+//      google.charts.setOnLoadCallback(initialize);
+
+      function initialize() {
+	  var opts = {sendMethod: 'auto'};
+	  var query = new
+	  google.visualization.Query('https://docs.google.com/spreadsheets/d/1aPME8M10NXD8r0ykjNfu1qMAtOFj9-oHpBjirX1Q3d8/edit#gid=1626484511', opts);
+
+	  query.setQuery('select A,C,F,G,H,I,J');
+	  query.send(drawVisualization);
+      } 
+
+      function drawVisualization(response) {
+
+	  var data = response.getDataTable();
+
+	  selectedFeatures = updateSelectedFeatures();
+
+	  document.getElementById("charts").innerHTML = ""
+	  for (i = 0; i < selectedFeatures.length; i++) { 
+
+	      var view = new google.visualization.DataView(data);
+
+	      view.setRows(view.getFilteredRows([{column: 0, value: selectedFeatures[i]}]));
+
+	      view.hideColumns([0]);
+
+              document.getElementById("charts").innerHTML += "\n<div class=\"chart\" id=\"chart" + String(i) + "\"></div>";
+
+	      var chart = new google.visualization.LineChart(document.getElementById('chart' + String(i)));
+
+	      options = {
+		  'title': 'Parameter measurements: ' + selectedFeatures[i],
+		  'hAxis': { format: '#' },
+		  'vAxis': { format: '#' },
+		  'pointSize': 4,
+		  'legend': { position: 'right' },
+		  'width': 600,
+		  'height': 300};
+
+	      
+	      chart.draw(view, options);
+
+	  };
+
+      }
+
+	</script>
+
+    </body>
+</html>
