@@ -6,7 +6,7 @@
         <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="css/leaflet.css" /><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css" />
+        <link rel="stylesheet" href="css/leaflet.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css" />
         <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/MarkerCluster.css" />
         <link rel="stylesheet" href="css/MarkerCluster.Default.css" />
@@ -74,7 +74,7 @@
         var bounds_group = new L.featureGroup([]);
         var raster_group = new L.LayerGroup([]);
 
-        var basemap_esri_imagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        var basemap_esri_imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
 	    maxZoom: 14
 	});
@@ -86,11 +86,65 @@
 	});
         basemap_esri_gray.addTo(map);
 
-        var basemap_streams = L.esri.dynamicMapLayer({
-	    url: "http://epagis1.oit.ohio.gov/ArcGIS/rest/services/WM/irbasemap/MapServer",
-	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15]
+        var streams = L.esri.dynamicMapLayer({
+//	    url: "http://epagis1.oit.ohio.gov/ArcGIS/rest/services/WM/irbasemap/MapServer",
+//	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15]
+            url: "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21_Labeled/MapServer",
 	});
-        basemap_streams.addTo(map);
+        streams.addTo(map);
+
+        streams.bindPopup(function (error, featureCollection) {
+	    feature = featureCollection.features[0];
+            return '<table>' +
+		'<tr><td colspan="2"><strong>COMID: </strong><br />' + (feature.properties['COMID'] !== null ? Autolinker.link(String(feature.properties['COMID'])) : '') + '</td></tr>' +
+		'<tr><td colspan="2"><strong>GNIS ID: </strong><br />' + (feature.properties['GNIS_ID'] !== null ? Autolinker.link(String(feature.properties['GNIS_ID'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>GNIS Name: </strong><br />' + (feature.properties['GNIS_NAME'] !== null ? Autolinker.link(String(feature.properties['GNIS_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Reach Code: </strong><br />' + (feature.properties['REACHCODE'] !== null ? Autolinker.link(String(feature.properties['REACHCODE'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Feature Type: </strong><br />' + (feature.properties['FTYPE'] !== null ? Autolinker.link(String(feature.properties['FTYPE'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Feature Code: </strong><br />' + (feature.properties['FCODE'] !== null ? Autolinker.link(String(feature.properties['FCODE'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Length (km): </strong><br />' + (feature.properties['LENGTHKM'] !== null ? Autolinker.link(String(feature.properties['LENGTHKM'])) : '') + '</td><tr>' + 
+		'</table>';
+	});
+
+        var watersheds = L.esri.dynamicMapLayer({
+	    url: "http://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/WBD_NP21_Simplified/MapServer",
+	    layers: [
+		0,  // Subwatersheds (HUC12)
+		1,  // Watersheds (HUC10)
+		2,  //Subbasins (HUC8)
+		3,  //Basins (HUC6)
+		4,  // Subregions (HUC4)
+		5   // Regions (HUC2)
+	    ],
+	});
+        watersheds.addTo(map);
+
+        watersheds.bindPopup(function (error, featureCollection) {
+	    feature = featureCollection.features[0];
+            return '<table>' +
+		'<tr><td colspan="2"><strong>HUC Code: </strong><br />' + (feature.properties['HUC_12'] !== null ? Autolinker.link(String(feature.properties['HUC_12'])) : '') + '</td></tr>' +
+		'<tr><td colspan="2"><strong>HUC6 Name: </strong><br />' + (feature.properties['HU_6_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_6_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>HUC8 Name: </strong><br />' + (feature.properties['HU_8_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_8_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>HUC10 Name: </strong><br />' + (feature.properties['HU_10_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_10_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>HUC12 Name: </strong><br />' + (feature.properties['HU_12_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_12_NAME'])) : '') + '</td><tr>' + 
+		'</table>';
+	});
+
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
 
         function setBounds() {
         }
@@ -104,6 +158,12 @@
           });
         }
         function pop_Stations0(feature, layer) {
+//            layer.on({
+//		mouseout: function(e) {
+//                    layer.setStyle(doStyleStations0(feature));
+//		},
+//		mouseover: highlightFeature,
+//	    });
             var popupContent = '<table><tr><td colspan="2"><strong>STATION_ID</strong><br />' + (feature.properties['STATION_ID'] !== null ? Autolinker.link(String(feature.properties['STATION_ID'])) : '') + '</td></tr></table>';
             layer.bindPopup(popupContent);
         }
@@ -166,15 +226,21 @@
 
         bounds_group.addLayer(json_Stations0JSON);
         feature_group.addLayer(json_Stations0JSON);
-        feature_group.addLayer(basemap_streams);
+        feature_group.addLayer(streams);
+        feature_group.addLayer(watersheds);
         raster_group.addTo(map);
         feature_group.addTo(map);
         var baseMaps = {
 	    "Earth": basemap_esri_imagery,
 	    "Map": basemap_esri_gray
 	};
+        var featureLayers = {
+	    "Stations": json_Stations0JSON,
+	    "Streams": streams,
+	    "Watershed boundaries": watersheds
+	}
 
-        L.control.layers(baseMaps,{},{collapsed:false}).addTo(map);
+        L.control.layers(baseMaps,featureLayers,{collapsed:false}).addTo(map);
         setBounds();
         map.addControl(new L.Control.Search({
             layer: feature_group,
