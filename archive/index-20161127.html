@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>FLOW Water Quality</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.2/leaflet.ie.css" /><![endif]-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/L.Control.Locate.min.css" />
+    <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
+    <link rel="stylesheet" href="css/leaflet-search.css" />
+    <link rel="stylesheet" href="css/leaflet.draw.css" />
+    <link rel="stylesheet" href="css/leaflet.measurecontrol.css" />
+    <link rel="stylesheet" href="css/leaflet-sidebar.css" />
+
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    <script src="js/L.Control.Locate.min.js"></script>
+    <script src="js/Autolinker.min.js"></script>
+    <script src="js/leaflet.draw.js"></script>
+    <script src="js/leaflet.measurecontrol.js"></script>
+    <script src="js/leaflet-search.js"></script>
+    <script src="js/leaflet-sidebar.js"></script>
+    <script src="js/leaflet-hash.js"></script>
+    <script src="data/stationsPointsJSON.js"></script>
+    <script src="https://unpkg.com/esri-leaflet@2.0.6"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <style>
+      html, body, #map {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      }
+    </style>
+</head>
+<body>
+
+  <div id="sidebar" class="sidebar collapsed">
+        <!-- Nav tabs -->
+        <div class="sidebar-tabs">
+            <ul role="tablist">
+                <li><a href="#intro" role="tab"><i class="fa fa-home"></i></a></li>
+                <li><a href="#stations" role="tab"><i class="fa fa-map-marker"></i></a></li>
+                <li><a href="#parameters" role="tab"><i class="fa fa-filter"></i></a></li>
+                <li><a href="#data" role="tab"><i class="fa fa-line-chart"></i></a></li>
+
+            </ul>
+            <ul role="tablist">
+              <li><a href="#credits" role="tab"><i class="fa fa-database"></i></a></li>
+            </ul>
+        </div>
+
+        <!-- Tab panes -->
+        <div class="sidebar-content">
+            <div class="sidebar-pane" id="intro">
+                <h1 class="sidebar-header">
+                    Introduction
+                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+
+		<div style="background-color:#78a22d">
+		  <img src="images/flow_logo_transparent.png" width="100%" style="display:block; margin:auto"></img>
+		</div>
+
+		<h2 style="text-align:center">Lower Olentangy Watershed Water Quality Data</h2>
+
+                <p>This application is provided by Friends of the
+                Lower Olentangy Watershed (FLOW) as a tool to browse
+                and visualize biological and chemical water quality
+                sample data.  Each of the markers on the map
+                represents a monitoring station.  To select a station,
+                simply click on the marker.  A popup will appear
+                showing the metadata for the station and the marker
+                will change color indicating that it has been
+                selected.  To select additional stations, simply click
+                on each in turn.  To deselect a station that has been
+                selected, simply click it again and the marker will
+                change back to the original color.  Alternately, click
+                the "Stations" (<i class="fa fa-map-marker"></i>) tab to select/deselect the
+                stations from a list.  After all desired stations have
+                been selected, click on the "Data" (<i class="fa fa-line-chart"></i>) tab to
+                review the sample data for the selected stations.  By
+                default, the data for all parameters will be shown.
+                If you would like to show only a subset of the
+                parameters, click on the "Parameters" (<i class="fa fa-filter"></i>) tab
+                and select the desired parameters.</p>
+            </div>
+
+            <div class="sidebar-pane" id="stations">
+                <h1 class="sidebar-header">
+                    Step 1: Select stations
+                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+
+                <p>Each line in the table below represents a
+                monitoring station.  To select a station, check the
+                box next to its identifier.  To deselect a station,
+                uncheck the box. To review the data associated with
+                each of the selected stations, click the "Data"
+                (<i class="fa fa-line-chart"></i>) tab.<p>
+
+		<h2>Selected features:</h2>
+		<p id="selectedFeatures"></p>
+		
+	    </div>
+
+            <div class="sidebar-pane" id="parameters">
+                <h1 class="sidebar-header">
+                    Step 2: Select parameters
+                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+
+                <p>Each line in the table below represents a
+                biological or chemical water quality parameter.
+                monitoring station.  Each monitoring station has
+                sample data associated with one or more of these
+                parameters.  Note that a particular station is not
+                guaranteed to have data for all parameters.  By
+                default all of the data available for the selected
+                stations will be displayed on the "Data" (<i class="fa fa-line-chart"></i>) tab.  If you would like to see only certain
+                parameters, check the box(es) next to each parameter
+                that you wish to see, then click the "Data" tab to
+                review the filtered data.</p>
+            </div>
+
+            <div class="sidebar-pane" id="data">
+                <h1 class="sidebar-header">
+                    Step 3: Review data
+                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+
+                <p>The data available for the stations you selected is
+                shown below.  If you selected specific parameters,
+                only those you selected will be shown.  Otherwise, all
+                parameters will be shown.</p>
+
+		<p>The charts are interactive.  You can click on data
+		points to see the raw data.  You can also pan and zoom
+		(more detail TBD).</p>
+
+		<p>If more advanced analysis is required, click on the
+		"Sources" (<i class="fa fa-database"></i>) tab to download the raw sample
+		data and spatial (GIS) data.</p>
+
+            </div>
+
+            <div class="sidebar-pane" id="credits">
+                <h1 class="sidebar-header">
+                    Credits and source data
+                    <span class="sidebar-close"><i class="fa fa-caret-left"></i></span>
+                </h1>
+
+		<h2>Water Quality Data</h2>
+
+                <p>TBD - Link to Google doc (or static export), shapefiles/GeoJSON/KML?, ArcGIS and/or QGIS project files.</p>
+
+		<h2>Supporting Data</h2>
+
+		<p>TBD - EPA flowlines and watershed boundary data</p>
+
+		<h2>Basemaps</h2>
+
+		<p>TBD - Basemaps</p>
+
+		<h2>Source Code</h2>
+
+		<p>TBD - leaflet, qgis2web, leaflet-sidebar, Google Charts, esri-leaflet</p>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="map" class="sidebar-map"></div>
+
+    <script>
+        // Create map object. Define default location and zoom level.
+        var map = L.map('map', {
+	    center: [40.1196, -83.3244],
+	    zoom: 10,
+            measureControl:true,
+            zoomControl:true, maxZoom:14, minZoom:7
+        });
+        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
+        L.control.locate().addTo(map);
+
+	// Capture current map coordinates/zoom level in URL
+        var hash = new L.Hash(map);
+
+
+	// Define basemaps
+        var basemap_simple = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+	    maxZoom: 14
+	});
+        map.attributionControl.addAttribution('<a href="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/" target="_blank">Esri World Light Gray Base</a>');
+        basemap_simple.addTo(map);
+
+        var basemap_imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	    maxZoom: 14
+	});
+        map.attributionControl.addAttribution('<a href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/" target="_blank">Esri World Imagery</a>');
+
+        var baseLayers = {
+	    "Imagery": basemap_imagery,
+	    "Simple": basemap_simple
+	};
+
+
+	// Define feature layers
+        var stationsPoints = new L.geoJson(stationsPointsJSON, {
+	    interactive: true,
+	    style: stationsPointsStyle,
+	    onEachFeature: onEachStation,
+            pointToLayer: stationsPointToLayer
+        });
+	stationsPoints.addTo(map);
+
+        var streamsRaster = L.esri.dynamicMapLayer({
+	    url: "http://epagis1.oit.ohio.gov/ArcGIS/rest/services/WM/irbasemap/MapServer",
+	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15],
+            url: "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21_Labeled/MapServer",
+	});
+        streamsRaster.addTo(map);
+
+        var watershedsRaster = L.esri.dynamicMapLayer({
+	    url: "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/WBD_NP21_Simplified/MapServer",
+	    layers: [
+		0,  // Subwatersheds (HUC12)
+		1,  // Watersheds (HUC10)
+		2,  //Subbasins (HUC8)
+		3,  //Basins (HUC6)
+		4,  // Subregions (HUC4)
+		5   // Regions (HUC2)
+	    ],
+	});
+
+        var featureLayers = {
+	    "Stations": stationsPoints,
+	    "Streams": streamsRaster,
+	    "Watershed boundaries": watershedsRaster
+	}
+
+        // Create layer selection control
+        L.control.layers(baseLayers,featureLayers,{collapsed:false}).addTo(map);
+
+        // Define events and styles for station features
+       function stationsPointToLayer(feature, latlng) {
+            return L.circleMarker(latlng, stationsPointsStyle())
+       }
+       function stationsPointsStyle() {
+           return {
+               radius: 8.0,
+               fillColor: '#a27eb9',
+               color: '#000000',
+               weight: 0.0,
+               opacity: 1.0,
+               dashArray: '',
+               lineCap: 'butt',
+               lineJoin: 'miter',
+               fillOpacity: 1.0
+           }
+       }
+
+       function stationsPointsHighlight(e) {
+	   var layer = e.target;
+	   if( !isSelected(e) ){
+	       layer.setStyle({
+		   fillColor: '#dfaeff'
+	       });
+	   }
+       }
+
+       function stationsPointsSelect(e) {
+	   var layer = e.target;
+	   layer.setStyle({
+	       fillColor: '#00ffff'
+	   });
+	   
+       }
+
+       function stationsPointsReset(e) {
+	   var layer = e.target;
+	   
+	   if( !isSelected(e) ){
+	       stationsPoints.resetStyle(e.target);
+	   }
+       }
+
+       function onEachStation(feature, layer) {
+	   layer.on({
+	       mouseover: stationsPointsHighlight,
+	       mouseout: stationsPointsReset,
+	       click: toggleFeatureSelection
+	   });
+       }
+
+       function updateSelectedFeatures() {
+	   var selectedFeatures = [];
+	   map.eachLayer( function(layer) {
+	       if (layer.feature && layer.feature.properties.selected === true) {
+                   selectedFeatures.push(layer.feature.properties["STATION_ID"]);
+	       }
+           })
+//           document.getElementById("selectedFeatures").innerHTML = selectedFeatures;
+	   
+	   return selectedFeatures;
+       }
+
+
+       function isSelected(e) {
+	   var layer = e.target;
+	   
+	   selectedFeatures = updateSelectedFeatures();
+	   
+	   featureState = selectedFeatures.indexOf(layer.feature.properties["STATION_ID"]);
+	   
+	   if (featureState == -1) {
+	       return false;
+	   } else {
+	       return true;
+	   }
+       }
+
+       function toggleFeatureSelection(e) {
+	   var layer = e.target;
+	   
+	   if (isSelected(e)) {
+	       
+	       layer.feature.properties.selected = false;
+	       
+	       stationsPointsHighlight(e);
+
+	   } else {
+
+	       layer.feature.properties.selected = true;
+	       
+	       stationsPointsSelect(e);
+
+	   }
+       }
+
+        // Create sidebar menu and open to Intro tab on page load
+        var sidebar = L.control.sidebar('sidebar').addTo(map);
+	sidebar.open('intro');
+
+    </script>
+</body>
+</html>

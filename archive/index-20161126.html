@@ -6,7 +6,7 @@
         <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <link rel="stylesheet" href="css/leaflet.css" /><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css" />
+        <link rel="stylesheet" href="css/leaflet.css" /><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css"><link rel="stylesheet" href="css/L.Control.Locate.min.css" />
         <link rel="stylesheet" type="text/css" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/MarkerCluster.css" />
         <link rel="stylesheet" href="css/MarkerCluster.Default.css" />
@@ -23,6 +23,7 @@
         <script src="js/leaflet.measurecontrol.js"></script>
         <script src="js/leaflet.markercluster.js"></script>
         <script src="js/leaflet-search.js"></script>
+        <script src="https://unpkg.com/esri-leaflet@2.0.6"></script>
 	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
         <style>
         html, body, #map {
@@ -42,8 +43,17 @@
 	  <div class="header_nav">
 	  </div>
 	</div>
-	<div class="map">
-          <div id="map">
+	<div class="top">
+          <div id="map" class="map">
+          </div>
+          <div id="parameters" class="parameters">
+	    <form action="">
+	      <input type="checkbox" name="parameters" value="f"> TOTL<br>
+	      <input type="checkbox" name="parameters" value="g"> EPT<br>
+	      <input type="checkbox" name="parameters" value="h"> PICI<br>
+	      <input type="checkbox" name="parameters" value="i"> COLDBUGS<br>
+	      <input type="checkbox" name="parameters" value="j"> SENSITIVES<br>
+	    </form>
           </div>
 	</div>
         <div>
@@ -72,13 +82,8 @@
         var feature_group = new L.featureGroup([]);
         var bounds_group = new L.featureGroup([]);
         var raster_group = new L.LayerGroup([]);
-        var basemap_stamen = L.tileLayer('http://a.tile.stamen.com/terrain/{z}/{x}/{y}.png', {
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>,<a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash;Map data: &copy; <a href="http://openstreetmap.org">OpenStreetMap</a>contributors,<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-            maxZoom: 14
-        });
-        basemap_stamen.addTo(map);
 
-        var basemap_esri_imagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        var basemap_esri_imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
 	    maxZoom: 14
 	});
@@ -89,6 +94,65 @@
 	    maxZoom: 14
 	});
         basemap_esri_gray.addTo(map);
+
+        var streams = L.esri.dynamicMapLayer({
+//	    url: "http://epagis1.oit.ohio.gov/ArcGIS/rest/services/WM/irbasemap/MapServer",
+//	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15]
+            url: "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21_Labeled/MapServer",
+	});
+        streams.addTo(map);
+
+        streams.bindPopup(function (error, featureCollection) {
+	    feature = featureCollection.features[0];
+            return '<table>' +
+		'<tr><td colspan="2"><strong>COMID: </strong><br />' + (feature.properties['COMID'] !== null ? Autolinker.link(String(feature.properties['COMID'])) : '') + '</td></tr>' +
+		'<tr><td colspan="2"><strong>GNIS ID: </strong><br />' + (feature.properties['GNIS_ID'] !== null ? Autolinker.link(String(feature.properties['GNIS_ID'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>GNIS Name: </strong><br />' + (feature.properties['GNIS_NAME'] !== null ? Autolinker.link(String(feature.properties['GNIS_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Reach Code: </strong><br />' + (feature.properties['REACHCODE'] !== null ? Autolinker.link(String(feature.properties['REACHCODE'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Feature Type: </strong><br />' + (feature.properties['FTYPE'] !== null ? Autolinker.link(String(feature.properties['FTYPE'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Feature Code: </strong><br />' + (feature.properties['FCODE'] !== null ? Autolinker.link(String(feature.properties['FCODE'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>Length (km): </strong><br />' + (feature.properties['LENGTHKM'] !== null ? Autolinker.link(String(feature.properties['LENGTHKM'])) : '') + '</td><tr>' + 
+		'</table>';
+	});
+
+        var watersheds = L.esri.dynamicMapLayer({
+	    url: "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/WBD_NP21_Simplified/MapServer",
+	    layers: [
+		0,  // Subwatersheds (HUC12)
+		1,  // Watersheds (HUC10)
+		2,  //Subbasins (HUC8)
+		3,  //Basins (HUC6)
+		4,  // Subregions (HUC4)
+		5   // Regions (HUC2)
+	    ],
+	});
+
+        watersheds.bindPopup(function (error, featureCollection) {
+	    feature = featureCollection.features[0];
+            return '<table>' +
+		'<tr><td colspan="2"><strong>HUC Code: </strong><br />' + (feature.properties['HUC_12'] !== null ? Autolinker.link(String(feature.properties['HUC_12'])) : '') + '</td></tr>' +
+		'<tr><td colspan="2"><strong>HUC6 Name: </strong><br />' + (feature.properties['HU_6_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_6_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>HUC8 Name: </strong><br />' + (feature.properties['HU_8_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_8_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>HUC10 Name: </strong><br />' + (feature.properties['HU_10_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_10_NAME'])) : '') + '</td><tr>' + 
+		'<tr><td colspan="2"><strong>HUC12 Name: </strong><br />' + (feature.properties['HU_12_NAME'] !== null ? Autolinker.link(String(feature.properties['HU_12_NAME'])) : '') + '</td><tr>' + 
+		'</table>';
+	});
+
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
 
         function setBounds() {
         }
@@ -101,10 +165,16 @@
             ];
           });
         }
-//        function pop_Stations0(feature, layer) {
-//            var popupContent = '<table><tr><td colspan="2"><strong>STATION_ID</strong><br />' + (feature.properties['STATION_ID'] !== null ? Autolinker.link(String(feature.properties['STATION_ID'])) : '') + '</td></tr></table>';
-//            layer.bindPopup(popupContent);
-//        }
+        function pop_Stations0(feature, layer) {
+//            layer.on({
+//		mouseout: function(e) {
+//                    layer.setStyle(doStyleStations0(feature));
+//		},
+//		mouseover: highlightFeature,
+//	    });
+            var popupContent = '<table><tr><td colspan="2"><strong>STATION_ID</strong><br />' + (feature.properties['STATION_ID'] !== null ? Autolinker.link(String(feature.properties['STATION_ID'])) : '') + '</td></tr></table>';
+            layer.bindPopup(popupContent);
+        }
 
         map.createPane('pane_Stations0');
         map.getPane('pane_Stations0').style.zIndex = 601;
@@ -141,16 +211,14 @@
 	    featureState = selectedFeatures.indexOf(layer.feature.properties["STATION_ID"]);
 
 	    if (featureState == -1) {
-//		e.target.feature.properties.selected = true;
 		layer.feature.properties.selected = true;
-	    
+
 		layer.setStyle({
 		weight: 5,
 		color: '#FF0000'
 		});
 
 	    } else {
-//		e.target.feature.properties.selected = false;
 		layer.feature.properties.selected = false;
 
 		resetHighlight(e);
@@ -169,17 +237,16 @@
         raster_group.addTo(map);
         feature_group.addTo(map);
         var baseMaps = {
-	    "Imagery": basemap_esri_imagery,
-	    "Styled": basemap_stamen, 
-	    "Simple": basemap_esri_gray
+	    "Earth": basemap_esri_imagery,
+	    "Map": basemap_esri_gray
 	};
-        var layers = {
-	    '<img src="legend/Stations0.png" /> Stations': json_Stations0JSON,
-	    '<img src="legend/Streams0.png" /> Stream lines': json_Streams0JSON,
-	    '<img src="legend/Watersheds0.png" /> Watershed boundaries': json_Watersheds0JSON
+        var featureLayers = {
+	    "Stations": json_Stations0JSON,
+	    "Streams": streams,
+	    "Watershed boundaries": watersheds
 	}
 
-        L.control.layers(baseMaps,{},{collapsed:false}).addTo(map);
+        L.control.layers(baseMaps,featureLayers,{collapsed:false}).addTo(map);
         setBounds();
         map.addControl(new L.Control.Search({
             layer: feature_group,
@@ -191,6 +258,8 @@
 	    layer.on({
 		click: toggleFeatureSelection
 	    });
+
+	    pop_Stations0(feature, layer);	    
 	}
 
         function updateSelectedFeatures() {
@@ -222,6 +291,9 @@
 	  var data = response.getDataTable();
 
 	  selectedFeatures = updateSelectedFeatures();
+
+	  document.getElementById("parameters").innerHTML = 
+	      "\n<div class=\"chart\" id=\"chart" + String(i) + "\"></div>";
 
 	  document.getElementById("charts").innerHTML = ""
 	  for (i = 0; i < selectedFeatures.length; i++) { 

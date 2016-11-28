@@ -1,4 +1,4 @@
-var json_Stations0={
+var stationsPointsJSON={
 "type": "FeatureCollection",
 "crs": {"type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features" : [
