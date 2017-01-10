@@ -83,15 +83,17 @@
                 selected.  To select additional stations, simply click
                 on each in turn.  To deselect a station that has been
                 selected, simply click it again and the marker will
-                change back to the original color.  Alternately, click
-                the "Stations" (<i class="fa fa-map-marker"></i>) tab to select/deselect the
-                stations from a list.  After all desired stations have
-                been selected, click on the "Data" (<i class="fa fa-line-chart"></i>) tab to
-                review the sample data for the selected stations.  By
-                default, the data for all parameters will be shown.
-                If you would like to show only a subset of the
-                parameters, click on the "Parameters" (<i class="fa fa-filter"></i>) tab
-                and select the desired parameters.</p>
+                change back to the original color.  A list of the
+                stations with annotations showing which are selected
+                is available on the the "Stations" (<i class="fa
+                fa-map-marker"></i>) tab. After all desired stations
+                have been selected, click on the "Data" (<i class="fa
+                fa-line-chart"></i>) tab to review the sample data for
+                the selected stations.  By default, the data for all
+                parameters will be shown.  If you would like to show
+                only a subset of the parameters, click on the
+                "Parameters" (<i class="fa fa-filter"></i>) tab and
+                select the desired parameters.</p>
             </div>
 
             <div class="sidebar-pane" id="stations">
@@ -133,8 +135,9 @@
                 stations will be displayed on the "Data" (<i class="fa
                 fa-line-chart"></i>) tab.  If you would like to see
                 only certain parameters, check the box(es) next to
-                each parameter that you wish to see, then click the
-                "Data" tab to review the filtered data.</p>
+                each parameter that you wish to see, click the "Apply
+                Filter" button, then click the "Data" tab to review
+                the filtered data.</p>
 		
 		<label><input class="parameter" id="totl" value="F"
 			      type="checkbox"
@@ -153,20 +156,6 @@
 			      checked>SENSITIVES</label><br />
 		<input type="button" value="Apply filter" onclick="getParameterData();">
 		
-<!---
-		<table>
-		<tr><td><input type="checkbox" name="totl" value="F"
-			       checked></td><td>TOTL</td></tr>
-		<tr><td><input type="checkbox" name="ept" value="G"
-			       checked></td><td>EPT</td></tr>
-		<tr><td><input type="checkbox" name="pici" value="H"
-			       checked></td><td>PICI</td></tr>
-		<tr><td><input type="checkbox" name="coldbugs" value="I"
-			       checked></td><td>COLDBUGS</td></tr>
-		<tr><td><input type="checkbox" name="sensitives" value="J"
-			       checked></td><td>SENSITIVES</td></tr>
-		</table>
---->		
 	    </div>
 
             <div class="sidebar-pane" id="data">
@@ -181,16 +170,18 @@
                 parameters will be shown.</p>
 
 		<p>The charts are interactive.  You can click on data
-		points to see the raw data.  You can also pan and zoom
-		(more detail TBD).</p>
+		points to see the raw data.  You can also pan and
+		zoom.  To pan, click on the chart background and drag
+		the mouse.  To zoom, place the cursor over the chart
+		background and scroll up (to zoom in) and down (to
+		zoom out).</p>
 
 		<p>If more advanced analysis is required, click on the
 		"Sources" (<i class="fa fa-database"></i>) tab to
 		download the raw sample data and spatial (GIS)
 		data.</p>
 
- 		<div id="charts" style="width:300px"></div>
-
+		<div id="charts" style="width:95%"></div>
             </div>
 
             <div class="sidebar-pane" id="credits">
@@ -201,19 +192,54 @@
 
 		<h2>Water Quality Data</h2>
 
-                <p>TBD - Link to Google doc (or static export), shapefiles/GeoJSON/KML?, ArcGIS and/or QGIS project files.</p>
+		<ul>
+		  <li><a href="https://docs.google.com/spreadsheets/d/1aPME8M10NXD8r0ykjNfu1qMAtOFj9-oHpBjirX1Q3d8/edit#gid=1626484511"
+		      target="_blank">Olentangy
+		      biological parameter data</a> [Authoritative
+		      source] (Google Sheets, source: Ohio EPA)</li>
+		</ul>
 
-		<h2>Supporting Data</h2>
 
-		<p>TBD - EPA flowlines and watershed boundary data</p>
+		<h2>Contextual Data</h2>
+
+		<ul>
+		  <li><a href="https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21_Labeled/MapServer"
+		    target="_blank">Stream
+		    lines</a> (MapServer, source: U.S. EPA National
+		    Hydrography Dataset)</li>
+		  <li><a href="https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/WBD_NP21_Simplified/MapServer"
+		      target="_blank">Watershed
+		      boundaries</a> (MapServer, source: U.S. EPA
+		    National Hydrography Dataset)</li>
+		</ul>
 
 		<h2>Basemaps</h2>
 
-		<p>TBD - Basemaps</p>
+		<ul>
+		  <li><a href="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/"
+		  target="_blank">World Light Gray Base</a>
+		  (MapServer, source: Esri)</li>
+		  <li><a href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/"
+		  target="_blank">World Imagery</a> (MapServer,
+		    source: Esri)</li>
+		</ul>
 
 		<h2>Source Code</h2>
 
-		<p>TBD - leaflet, qgis2web, leaflet-sidebar, Google Charts, esri-leaflet</p>
+		<ul>
+		  <li><a href="http://leafletjs.com/"
+			 target="_blank">Leaflet</a> (Javascript web
+			 mapping library)</li>
+		  <li><a href="http://turbo87.github.io/leaflet-sidebar/examples/"
+			 target="_blank">leaflet-sidebar</a> (Leaflet
+			 sidebar plugin)</li>
+		  <li><a href="http://esri.github.io/esri-leaflet/"
+			 target="_blank">esri-leaflet</a> (Leaflet
+		    plugin for accessing MapServer data)</li>
+		  <li><a href="https://developers.google.com/chart/"
+			 target="_blank">Google Charts API</a>
+		    (Javascript chart manipulation library)</li>
+		</ul>
             </div>
 
         </div>
@@ -227,9 +253,8 @@
 	    center: [40.1196, -83.3244],
 	    zoom: 10,
             measureControl:true,
-            zoomControl:true, maxZoom:14, minZoom:7
+            zoomControl:true, maxZoom:16, minZoom:7
         });
-        map.attributionControl.addAttribution('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a>');
         L.control.locate().addTo(map);
 
 	// Capture current map coordinates/zoom level in URL
@@ -237,13 +262,13 @@
 
 	// Define basemaps
         var basemap_simple = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-	    maxZoom: 14
+	    maxZoom: 16
 	});
         map.attributionControl.addAttribution('<a href="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/" target="_blank">Esri World Light Gray Base</a>');
         basemap_simple.addTo(map);
 
         var basemap_imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-	    maxZoom: 14
+	    maxZoom: 16
 	});
         map.attributionControl.addAttribution('<a href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/" target="_blank">Esri World Imagery</a>');
 
@@ -269,9 +294,8 @@
             propertyName: 'STATION_ID'}));
 	
         var streamsRaster = L.esri.dynamicMapLayer({
-	    url: "http://epagis1.oit.ohio.gov/ArcGIS/rest/services/WM/irbasemap/MapServer",
-	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15],
             url: "https://watersgeo.epa.gov/arcgis/rest/services/NHDPlus_NP21/NHDSnapshot_NP21_Labeled/MapServer",
+	    layers: [0,1,2,3,4,5,6,7,8,9,10,11,14,15],
 	});
         streamsRaster.addTo(map);
 
@@ -462,9 +486,9 @@
 		   'hAxis': { format: '#' },
 		   'vAxis': { format: '#' },
 		   'pointSize': 4,
-		   'chartArea':{ left:0,top:'10px',width:'75%',height:'75%' },
+		   //		   'chartArea':{ left:'10px',top:'10px',width:'50%',height:'50%' },
 		   'explorer':{},
-		   'legend': { poition: 'right' }
+		   'legend': { position: 'bottom' }
 	       };
 	      
 	       chart.draw(view, options);
